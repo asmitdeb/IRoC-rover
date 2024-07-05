@@ -212,7 +212,7 @@ if __name__ == '__main__':
             # time.sleep(10)
             print("alignment process started")
             while True:
-                if STOP_CONT.value :
+                if SAMPLE_DROPPED.value :
                     break
                 align_process = Process(target=align, args=(inference_data, lock))
                 align_process.start()
