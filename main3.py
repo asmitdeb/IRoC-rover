@@ -6,13 +6,12 @@ import time
 from heading_i2c_test import SCM_init_test
 # from heading_i2c import CM_init, SCM_init, send_instruction, send_instruction_addr, turn_to_angle
 
-def align(inference_data, lock):
-    temp_data = []
+def align(inference_data, lock, SAMPLE_PICKED, SAMPLE_DROPPED, frame_x, prev_inst, STOP_SAMP, STOP_CONT):
 
     with lock:
-        temp_data[:] = inference_data
+        temp_data = inference_data
     [class_name, area, center_x] = temp_data
-
+    # print(temp_data)
     if class_name == "SAMPLE" and not SAMPLE_PICKED.value:
         print(f"------------------{area}-----------------")
         if (center_x>frame_x.value +20 and not STOP_SAMP.value):
@@ -176,10 +175,12 @@ if __name__ == '__main__':
     CAM_START = True
 
     inference_cam_process = Process(target=inference_cam, args=(inference_data, ))
-    # inference_cam_process.start()
+    print("cam and inference started ")
+    inference_cam_process.start()
 
 
-    while not MODE_INIT_RUNNING:
+    # while not MODE_INIT_RUNNING:
+    while True:
         # MODE_INIT_RUNNING = True
         MODE = input("Enter mode: ")
         print(f"----------------------------CURRENTLY IN {MODE} MODE----------------------------")
@@ -188,40 +189,40 @@ if __name__ == '__main__':
         elif(MODE == "CM"):
             # curr_mode.value = 0
 
-            if(CAM_START == True):
-                print("cam started")
-                inference_cam_process.start()
-                CAM_START = False
+            # if(CAM_START == True):
+            #     print("cam started")
+            #     inference_cam_process.start()
+            #     CAM_START = False
 
             print("scm mode started")
-            MODE_INIT_RUNNING = True
+            # MODE_INIT_RUNNING = True
             SCM_init_test()
             print("scm mode finished")
-            MODE_INIT_RUNNING = False
+            # MODE_INIT_RUNNING = False
 
         elif(MODE == "AM"):
             # curr_mode.value = 1
 
-            if(CAM_START == True):
-                print("cam started")
-                inference_cam_process.start()
-                CAM_START = False
+            # if(CAM_START == True):
+            #     print("cam started")
+            #     inference_cam_process.start()
+            #     CAM_START = False
 
-            MODE_INIT_RUNNING = True
+            # MODE_INIT_RUNNING = True
             print("am mode started")
             # time.sleep(10)
             print("alignment process started")
             while True:
                 if SAMPLE_DROPPED.value :
                     break
-                align_process = Process(target=align, args=(inference_data, lock))
+                align_process = Process(target=align, args=(inference_data, lock, SAMPLE_PICKED, SAMPLE_DROPPED, frame_x, prev_inst, STOP_SAMP, STOP_CONT))
                 align_process.start()
                 print("aligning rover")
                 align_process.join()
 
             # align_process.join() #required?
             print("Reached final position")
-            MODE_INIT_RUNNING = False
+            # MODE_INIT_RUNNING = False
         
 
 
